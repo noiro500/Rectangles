@@ -36,6 +36,7 @@ namespace Rectangles
             InitializeComponent();
             random = new Random();
             rectangles = new List<RectangleFigure>();
+            Text = $@"Rectangles: Seed={Seed}; RemovalCycles={RemovalCycles}; TimerInterval={TimerInterval} мсек. ";
         }
 
         private void Timer_Tick(object sender, EventArgs e)

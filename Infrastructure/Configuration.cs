@@ -1,4 +1,5 @@
 ﻿using System.Configuration;
+using System.Diagnostics;
 using System.Text;
 
 namespace Rectangles.Infrastructure
@@ -9,9 +10,9 @@ namespace Rectangles.Infrastructure
     /// </summary>
     public class Configuration : IConfiguration
     {
-        public int Seed { get; set; }
-        public int RemovalCycles { get; set; }
-        public int TimerInterval { get; set; }
+        public int Seed { get; set; } = 100;
+        public int RemovalCycles { get; set; } = 2;
+        public int TimerInterval { get; set; } = 2000;
 
         /// <summary>
         /// Базовый метод считывания переменных из файла App.config
@@ -20,25 +21,43 @@ namespace Rectangles.Infrastructure
         /// <returns>В зависимости от результата возвращает значение bool</returns>
         public bool InitializeVariables()
         {
-            var keys = ConfigurationManager.AppSettings.Keys;
-            foreach (string key in keys)
+            try
             {
-                string? valueFromAppConfig = ConfigurationManager.AppSettings.Get(key);
-                if (valueFromAppConfig == "Stop")
-                    break;
-                if (valueFromAppConfig is null)
+                var keys = ConfigurationManager.AppSettings.Keys;
+                if (keys.Count == 0)
                 {
-                    MessageBox.Show(
-                        $"Ошибка в файле конфигурации App.config. Не найден ключ \"{key}\". Приложение будет закрыто",
-                        ConfigurationManager.AppSettings.Get("Ошибка"),
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error);
+                    ShowMessage(
+                        $"Ошибка в файле конфигурации *.config. Файл не содержит значение необходимых параметров. Приложение будет закрыто.",
+                        "Ошибка!!!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return false;
                 }
-                if (!CheckVariables(key, valueFromAppConfig))
-                    return false;
+
+                foreach (string key in keys)
+                {
+                    string? valueFromAppConfig = ConfigurationManager.AppSettings.Get(key);
+                    if (valueFromAppConfig == "Stop")
+                        break;
+                    if (valueFromAppConfig is null)
+                    {
+                        ShowMessage(
+                            $"Ошибка в файле конфигурации *.config. Не найден ключ \"{key}\". Приложение будет закрыто.",
+                            "Ошибка!!!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return false;
+                    }
+
+                    if (!CheckVariables(key, valueFromAppConfig))
+                        return false;
+                }
+
+                return true;
             }
-            return true;
+            catch (ConfigurationErrorsException err)
+            {
+                ShowMessage("Ошибка чтения структуры файла конфигурации *.config. Приложение будет закрыто.",
+                    "Ошибка!!!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+
         }
 
         /// <summary>
@@ -72,31 +91,31 @@ namespace Rectangles.Infrastructure
                 }
                 else
                 {
-                    var result = MessageBox.Show(
-                        (new StringBuilder($"{ConfigurationManager.AppSettings.Get("Message")}"))
-                        .Replace("[key]", key).ToString(),
+                    var result = ShowMessage((new StringBuilder($"{ConfigurationManager.AppSettings.Get("Message")}"))
+                    .Replace("[name]", key).ToString(),
                         ConfigurationManager.AppSettings.Get("caption"),
-                        MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Question);
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
                     if (result == DialogResult.No)
+                    {
+                        ShowMessage("Заданы недопустимые параметры. Приложение будет закрыто.",
+                            "Внимание!!!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                         return false;
-                    else
-                    {
-                        var actions = new Dictionary<string, Action>
-                    {
-                        { "Seed", () => Seed = 100 },
-                        { "RemovalCycles", () => RemovalCycles = 2 },
-                        { "TimerInterval", () => TimerInterval = 1000 }
-                    };
-                        if (actions.ContainsKey(key))
-                        {
-                            actions[key]();
-                            return true;
-                        }
                     }
+                    else
+                        return true;
                 }
             }
             return false;
+        }
+
+        DialogResult ShowMessage(string mess, string? textOfWindow, MessageBoxButtons mesBoxButton, MessageBoxIcon icon)
+        {
+            return MessageBox.Show(
+                  mess,
+                  textOfWindow,
+                  mesBoxButton,
+                  icon);
         }
     }
 }
