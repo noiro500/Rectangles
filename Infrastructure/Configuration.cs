@@ -28,7 +28,7 @@ namespace Rectangles.Infrastructure
                 {
                     ShowMessage(
                         $"Ошибка в файле конфигурации *.config. Файл не содержит значение необходимых параметров. Приложение будет закрыто.",
-                        "Ошибка!!!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        ConfigurationManager.AppSettings.Get("error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return false;
                 }
 
@@ -41,7 +41,7 @@ namespace Rectangles.Infrastructure
                     {
                         ShowMessage(
                             $"Ошибка в файле конфигурации *.config. Не найден ключ \"{key}\". Приложение будет закрыто.",
-                            "Ошибка!!!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            ConfigurationManager.AppSettings.Get("error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return false;
                     }
 
@@ -54,7 +54,7 @@ namespace Rectangles.Infrastructure
             catch (ConfigurationErrorsException err)
             {
                 ShowMessage("Ошибка чтения структуры файла конфигурации *.config. Приложение будет закрыто.",
-                    "Ошибка!!!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ConfigurationManager.AppSettings.Get("error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
 
@@ -93,13 +93,13 @@ namespace Rectangles.Infrastructure
                 {
                     var result = ShowMessage((new StringBuilder($"{ConfigurationManager.AppSettings.Get("Message")}"))
                     .Replace("[name]", key).ToString(),
-                        ConfigurationManager.AppSettings.Get("caption"),
+                        ConfigurationManager.AppSettings.Get("warning"),
                     MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                     if (result == DialogResult.No)
                     {
                         ShowMessage("Заданы недопустимые параметры. Приложение будет закрыто.",
-                            "Внимание!!!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                            ConfigurationManager.AppSettings.Get("warning"), MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                         return false;
                     }
                     else
